@@ -4,11 +4,14 @@ import com.yasitha.test1.DTO.PersonRegReq;
 import com.yasitha.test1.Service.PersonRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 public class RegisterController {
@@ -20,10 +23,6 @@ public class RegisterController {
         this.personRegistration = personRegistration;
     }
 
-    @RequestMapping(value = "/reg", method = RequestMethod.GET)
-    public String loginPage() {
-        return "register";
-    }
 
     @InitBinder
     public void initBinder(WebDataBinder binder) {
@@ -31,9 +30,15 @@ public class RegisterController {
         dateFormat.setLenient(false);
         binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, true));
     }
+//controllers 
+    @RequestMapping( value = "/reg", method = RequestMethod.POST)
+    public ResponseEntity<Map<String,String>> registerReq(@RequestBody PersonRegReq regReq) {
+        String message= personRegistration.registerUser(regReq);
+        Map<String,String> map = new HashMap<>();
+        map.put("message",message);
+        return ResponseEntity.ok(map);
 
-    @RequestMapping(name ="reg_req", value = "/reg", method = RequestMethod.POST)
-    public String registerReq(@RequestBody PersonRegReq regReq) {
-        return personRegistration.registerUser(regReq);
+        // Return a 200 OK response with
+        // the message (server successfully processed the request)
     }
 }
