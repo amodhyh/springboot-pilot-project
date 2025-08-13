@@ -1,18 +1,18 @@
 package com.yasitha.test1.Config;
 
-import org.springframework.boot.autoconfigure.graphql.GraphQlProperties;
+import com.yasitha.test1.Service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.Authentication;
+
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.security.web.DefaultSecurityFilterChain;
-import org.springframework.security.web.server.SecurityWebFilterChain;
 
-import java.net.PasswordAuthentication;
 import java.util.Map;
 
 @Configuration
@@ -22,15 +22,32 @@ public class SecurityConfig {
     public DefaultSecurityFilterChain securityWebFilterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/reg","/login").permitAll()
+                        .requestMatchers("/reg","/login").permitAll()  //coarse-grained url based access control
                         .requestMatchers("/home").authenticated()
                         .requestMatchers("/settings").hasAuthority("ADMIN")
                         .anyRequest().authenticated())
                 .formLogin(formLogin -> formLogin.disable())
+               // .sessionManagement(sessionManagement ->sessionManagement.configure(http))
                 .httpBasic(httpBasic -> httpBasic.disable());
         return http.build();
     }
 
+    @Bean
+    //receive a login request and delegate the actual work of authentication to one or more AuthenticationProvider
+    public AuthenticationManager authenticationManagerBean(CustomUserDetailsService customUserDetailsService,  DelegatingPasswordEncoder passwordEncoder)  {
+        //the specific provider that knows how to handle a username and password by checking a database.
+        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
+        authenticationProvider.setPasswordEncoder(passwordEncoder);
+        authenticationProvider.setUserDetailsService(customUserDetailsService);
+
+        //ProviderManager is a concrete implementation of AuthenticationManager
+        // that delegates authentication requests to a list of AuthenticationProvider instances.
+        return new ProviderManager(authenticationProvider);
+
+
+
+
+    }
 
 
     @Bean

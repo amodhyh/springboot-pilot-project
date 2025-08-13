@@ -1,5 +1,4 @@
 package com.yasitha.test1.Model;
-
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
