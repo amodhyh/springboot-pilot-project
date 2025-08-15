@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashSet;
+import java.util.Map;
 
 @RestController
 public class LoginController {
@@ -27,7 +28,7 @@ public class LoginController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> authentication(@RequestBody PersonLogingRequest request) {
+    public ResponseEntity<Map<String,String>> authentication(@RequestBody PersonLogingRequest request) {
         return personAuthenticationService.authenticateUser(request);
 
     };

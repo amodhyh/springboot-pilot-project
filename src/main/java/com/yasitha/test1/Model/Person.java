@@ -1,6 +1,7 @@
 package com.yasitha.test1.Model;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,7 +20,7 @@ import java.util.stream.Stream;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Person implements UserDetails {
+public class Person  {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "person_seq")
@@ -55,6 +56,7 @@ public class Person implements UserDetails {
     @Getter @Setter
     private LocalDate dob;
 
+    //this too can be used @CreationTimestamp(source = )
     @Column(name = "CREATED_AT",updatable = false)
     @Getter @Setter
     private LocalDate createdAt;
@@ -64,55 +66,8 @@ public class Person implements UserDetails {
     private  String username;
 
     @Column(name = "PASSWORD",columnDefinition = "CLOB",length = 255, nullable = false)
-     @Setter
+     @Getter @Setter
     private String password;
-
-    @Override
-    //generate authorities based on roles and permissions
-    //? anytype (wildcard)
-    //extends GrantedAuthority means that the collection can contain any object that implements GrantedAuthority
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-//return a stream of authorities combining roles and permissions(granted authorities objects)
-            return Stream.concat(
-                    roles.stream()
-        // map each role to a SimpleGrantedAuthority
-                            .map(role -> new SimpleGrantedAuthority( role.getName())),
-                    roles.stream()
-                            .flatMap(role -> role.getPermissions().stream()
-                                    .map(perm -> new SimpleGrantedAuthority(perm.getPermissionName())))
-            ).collect(Collectors.toSet());
-    }
-
-
-    @Override
-    public String getPassword() {
-        return this.password;
-    }
-
-    @Override
-    public String getUsername() {
-        return this.username;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true; // Or return a value from your entity
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true; // Or return a value from your entity
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true; // Or return a value from your entity
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true; // Or return a value from your entity
-    }
 
 
 }
