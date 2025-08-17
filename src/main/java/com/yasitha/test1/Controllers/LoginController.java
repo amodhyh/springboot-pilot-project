@@ -1,5 +1,6 @@
 package com.yasitha.test1.Controllers;
 
+import com.yasitha.test1.DTO.PersonLoginResponse;
 import com.yasitha.test1.DTO.PersonLogingRequest;
 import com.yasitha.test1.Service.PersonAuthenticationService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,7 +21,7 @@ import java.util.Map;
 @RestController
 public class LoginController {
 
-    private  PersonAuthenticationService personAuthenticationService;
+    private final PersonAuthenticationService personAuthenticationService;
 
     @Autowired
     public LoginController(PersonAuthenticationService personAuthenticationService) {
@@ -28,7 +29,7 @@ public class LoginController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String,String>> authentication(@RequestBody PersonLogingRequest request) {
+    public ResponseEntity<PersonLoginResponse> authentication(@RequestBody PersonLogingRequest request) {
         return personAuthenticationService.authenticateUser(request);
 
     };

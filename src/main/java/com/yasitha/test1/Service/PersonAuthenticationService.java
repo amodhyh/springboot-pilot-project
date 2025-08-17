@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.util.JSONPObject;
+import com.yasitha.test1.DTO.PersonLoginResponse;
 import com.yasitha.test1.DTO.PersonLogingRequest;
 import com.yasitha.test1.ExceptionHandling.EmailNotFoundException;
 import com.yasitha.test1.Repository.PersonRepository;
@@ -38,9 +39,8 @@ public class PersonAuthenticationService {
     }
 
     // Authenticate user with email and password
-    public ResponseEntity<Map<String,String>> authenticateUser(PersonLogingRequest personLogingRequest) {
+    public ResponseEntity<PersonLoginResponse> authenticateUser(PersonLogingRequest personLogingRequest) {
         // Check if the user exists by email\
-        HashMap<String, String> message = new HashMap<>();
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(personLogingRequest.getEmail());
         if (userDetails == null) {
             throw new EmailNotFoundException("Email not found: " + personLogingRequest.getEmail());
@@ -53,25 +53,16 @@ public class PersonAuthenticationService {
 
             // Authenticate the user give token for an authentication request
             Authentication authentication = authenticationManager.authenticate(authenticationToken);
-            ObjectMapper objectMapper = new ObjectMapper();
             if (authentication.isAuthenticated()) {
 
                 String token=jwtUtility.generateToken(userDetails.getUsername(), userDetails.getAuthorities());
-
-                String jsonResponse = objectMapper.writeValueAsString(token);
-
-                message.put("token", jsonResponse);
-                message.put("message", "User authenticated successfully");
-                return ResponseEntity.ok(message);
+                return ResponseEntity.ok(new PersonLoginResponse(token,"login Succesfull!"));
 
             }
         } catch (AuthenticationException e) { //Catch for the wrong password
-            message.put("message", "Invalid username or password");
-            return  ResponseEntity.status(401).body(message);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            return  ResponseEntity.status(401).body(new PersonLoginResponse("","Invalid email or password"));
+
         }
-        message.put("message", "Unexpected Error Occured");
-        return ResponseEntity.status(500).body(message);
+        return ResponseEntity.status(500).body(new PersonLoginResponse(""," Unexpected error occurred during authentication"));
     }
 }

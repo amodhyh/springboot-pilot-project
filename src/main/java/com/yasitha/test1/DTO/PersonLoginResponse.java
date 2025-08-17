@@ -1,5 +1,3 @@
 package com.yasitha.test1.DTO;
 
-public class PersonLoginResponse {
-
-}
+public record PersonLoginResponse (String token, String message){}
