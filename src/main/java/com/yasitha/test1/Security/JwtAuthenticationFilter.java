@@ -1,15 +1,16 @@
 package com.yasitha.test1.Security;
 
+import com.yasitha.test1.ExceptionHandling.UserNotFoundException;
 import com.yasitha.test1.Service.CustomUserDetailsService;
 import com.yasitha.test1.Utility.JWTUtility;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.hibernate.annotations.Filter;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -29,26 +30,53 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
     // Override the doFilterInternal method to implement JWT authentication logic.
     @Override
-    protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain filterChain)throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain filterChain) throws ServletException, IOException {
+
         String authorizationHeader = req.getHeader("Authorization");
+        String username = null;
+        String jwtToken = null;
+
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            String jwtToken = authorizationHeader.substring(7);
+            jwtToken = authorizationHeader.substring(7);
             try {
                 // Validate the JWT token and extract user details
-                String username = jwtUtility.extractDetails(jwtToken);
-                if (username != null) {
-                    // Load user details from the database
-                    var userDetails = customUserDetailsService.loadUserByUsername(username);
-                    // Set the authentication in the security context
-                    var authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                }
-            } catch (Exception e) {
-                // Handle exceptions related to JWT validation
-                res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT token");
+                username = jwtUtility.extractUserDetails(jwtToken);
+            } catch (JwtException e) {
+                // If the JWT token is invalid, set the response status to 401 Unauthorized
+                res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }
         }
-    }
 
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            try {
+                // Load user details from the database
+                UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
+
+                // This validation step should also be here.
+                if (jwtUtility.validateToken(jwtToken)) {
+                    // Set the authentication in the security context
+                    var authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    /*
+                    Security context temporary store  users identity and permissions for the
+                    duration of a single http request
+                    SecurityContext is an object held by the SecurityContextHolder
+                     has 3 objects
+                     Principle-UserDetails object
+                     Credentials-null for the jwt
+                     Authorities-User's granted authorities
+                     */
+                } else {
+                    res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    return;
+                }
+            } catch (UserNotFoundException e) {
+                res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
+            }
+        }
+        // Critical: Continue the filter chain.
+        filterChain.doFilter(req, res);
+    }
 }

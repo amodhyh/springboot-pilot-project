@@ -39,7 +39,7 @@ public class PersonRegistrationService {
     @Transactional
     public String registerUser(PersonRegReq personRegReq)  {
 
-        if(personRepository.findByEmail(personRegReq.getEmail())!= null) {
+        if(customUserDetailsService.loadUserByUsername(personRegReq.getEmail())!= null) {
             throw new EmailAlreadyExistsException(personRegReq.getEmail()+" Email already exists!");
         }
         else if (Period.between(personRegReq.getDob(), LocalDate.now()).getYears()<16) {

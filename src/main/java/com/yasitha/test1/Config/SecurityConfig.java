@@ -9,6 +9,7 @@ import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.security.web.DefaultSecurityFilterChain;
@@ -36,11 +37,12 @@ public class SecurityConfig {
                         .requestMatchers("/reg","/login").permitAll()  //coarse-grained url based access control
                         .requestMatchers("/home").authenticated()
                         .requestMatchers("/settings").hasAuthority("ADMIN")
-                        .anyRequest().authenticated())
+                        .anyRequest().authenticated())  //all ther endpoints should be authenticated
 
                         .addFilterBefore(jwtAuthenticationFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
                         .formLogin(formLogin -> formLogin.disable())
-               // .sessionManagement(sessionManagement ->sessionManagement.configure(http))
+                //Session manaagement is set to stateless to ensure that the application does not use sessions to store authentication information.
+                        .sessionManagement(sessionManagement ->sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                         .httpBasic(httpBasic -> httpBasic.disable());
         return http.build();
     }
