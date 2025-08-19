@@ -11,6 +11,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,5 +34,17 @@ public class LoginController {
         return personAuthenticationService.authenticateUser(request);
 
     };
+    @GetMapping("/home")
+    public ResponseEntity<Map<String, String>> home(HttpServletRequest request) {
+        // This endpoint can be used to test if the user is authenticated.
+        // It can return a simple message or user details.
+        String username = request.getUserPrincipal().getName();
+        return ResponseEntity.ok(Map.of("message", "Welcome " + username + "! You are authenticated."));
+    }
+    @GetMapping("/settings")
+    public ResponseEntity<Map<String, String>> settings(HttpServletRequest request) {
+        return ResponseEntity.ok(Map.of("message", "Settings page. Only accessible to ADMIN users."));
+    }
+
 
 }

@@ -39,7 +39,7 @@ public class PersonRegistrationService {
     @Transactional
     public String registerUser(PersonRegReq personRegReq)  {
 
-        if(customUserDetailsService.loadUserByUsername(personRegReq.getEmail())!= null) {
+        if(personRepository.findByEmail(personRegReq.getEmail())!= null) {
             throw new EmailAlreadyExistsException(personRegReq.getEmail()+" Email already exists!");
         }
         else if (Period.between(personRegReq.getDob(), LocalDate.now()).getYears()<16) {
@@ -47,7 +47,7 @@ public class PersonRegistrationService {
 
         }
 
-        Role defRole= roleRepository.findByName("USER");
+        Role defRole= roleRepository.findByName("ADMIN");
         Set<Role> defRoleSet = new HashSet<>();
         defRoleSet.add(defRole);
         String encryptedPassword = passwordEncoder.encode(personRegReq.getPassword());
