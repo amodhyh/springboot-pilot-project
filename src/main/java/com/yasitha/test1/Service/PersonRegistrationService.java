@@ -21,18 +21,14 @@ import java.util.Set;
 @Service
 public class PersonRegistrationService {
 
-    private  final CustomUserDetailsService customUserDetailsService;
     private final PersonRepository personRepository;
     private final DelegatingPasswordEncoder passwordEncoder;
-    private final PermissionRepo permissionRepo;
     private final RoleRepository roleRepository;
 
     @Autowired
-    public PersonRegistrationService(CustomUserDetailsService customUserDetailsService, RoleRepository roleRepository, PersonRepository personRepository, DelegatingPasswordEncoder passwordEncoder, PermissionRepo permissionRepo) {
-        this.customUserDetailsService = customUserDetailsService;
+    public PersonRegistrationService( RoleRepository roleRepository, PersonRepository personRepository, DelegatingPasswordEncoder passwordEncoder) {
         this.personRepository = personRepository;
         this.passwordEncoder = passwordEncoder;
-        this.permissionRepo = permissionRepo;
         this.roleRepository = roleRepository;
     }
 
