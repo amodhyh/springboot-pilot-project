@@ -4,6 +4,7 @@ import com.yasitha.test1.DTO.PersonLoginResponse;
 import com.yasitha.test1.DTO.PersonLogingRequest;
 import com.yasitha.test1.Service.PersonAuthenticationService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,7 +25,7 @@ public class LoginController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<PersonLoginResponse> authentication(@RequestBody PersonLogingRequest request) {
+    public ResponseEntity<PersonLoginResponse> authentication(@Valid @RequestBody PersonLogingRequest request) {
         return personAuthenticationService.authenticateUser(request);
 
     };

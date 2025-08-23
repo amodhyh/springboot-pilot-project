@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.yasitha.test1.DTO.PersonLoginResponse;
 import com.yasitha.test1.DTO.PersonLogingRequest;
 import com.yasitha.test1.ExceptionHandling.EmailNotFoundException;
+import com.yasitha.test1.ExceptionHandling.UserNotFoundException;
 import com.yasitha.test1.Repository.PersonRepository;
 import com.yasitha.test1.Utility.JWTUtility;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,12 +42,11 @@ public class PersonAuthenticationService {
     // Authenticate user with email and password
     public ResponseEntity<PersonLoginResponse> authenticateUser(PersonLogingRequest personLogingRequest) {
         // Check if the user exists by email\
-        UserDetails userDetails = customUserDetailsService.loadUserByUsername(personLogingRequest.getEmail());
-        if (userDetails == null) {
-            throw new EmailNotFoundException("Email not found: " + personLogingRequest.getEmail());
-        }
+
+
         //the email exists and then checks for the password using the AuthenticationManager.
         try {
+            UserDetails userDetails = customUserDetailsService.loadUserByUsername(personLogingRequest.getEmail());
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                     personLogingRequest.getEmail(),
                     personLogingRequest.getPassword());
@@ -60,9 +60,13 @@ public class PersonAuthenticationService {
 
             }
         } catch (AuthenticationException e) { //Catch for the wrong password
-            return  ResponseEntity.status(401).body(new PersonLoginResponse("","Invalid email or password"));
+            return  ResponseEntity.status(401).body(new PersonLoginResponse("Invalid email or password"));
 
         }
-        return ResponseEntity.status(500).body(new PersonLoginResponse(""," Unexpected error occurred during authentication"));
+        catch (UserNotFoundException e) { //Catch for the wrong email
+            return  ResponseEntity.status(404).body(new PersonLoginResponse("Email not found"));
+        }
+
+        return ResponseEntity.status(500).body(new PersonLoginResponse(" Unexpected error occurred during authentication"));
     }
 }
