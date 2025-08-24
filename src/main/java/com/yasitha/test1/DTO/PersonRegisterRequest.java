@@ -12,20 +12,25 @@ import java.time.LocalDate;
 @Setter
 @AllArgsConstructor
 public class PersonRegisterRequest {
+    @NotNull(message = "Email is required")
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
     private String email;
 
+    @NotNull(message = "Password is required")
     @NotBlank(message = "Password is required")
     @Size(min=8,max=15,message ="Password Should be minimum 8 characters and maximum 15 characters" )
     private String password;
 
+    @NotNull(message = "Username is required")
     @NotBlank(message = "Username is required")
     private String username;
 
+    @NotNull(message = "First name is required")
     @NotBlank(message = "first name is required")
     private String firstName;
 
+    @NotNull(message = "Last name is required")
     @NotBlank(message = "last name is required")
     private String lastName;
 

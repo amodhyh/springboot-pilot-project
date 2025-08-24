@@ -10,14 +10,17 @@ import lombok.Setter;
 @Getter
 @Setter
 public class PersonLogingRequest
-{
+{   @NotNull(message = "Email is required")
     @NotBlank(message = "Email is required")
-    @Email(message = "Invalid email format")
+    @Email(message = "Invalid Email Format")
     private String email;
 
+    @NotNull(message = "Password is required")
     @NotBlank(message = "Password is required")
     private String password;
 
     public PersonLogingRequest(String mail, String password123) {
+        this.email = mail;
+        this.password = password123;
     }
 }

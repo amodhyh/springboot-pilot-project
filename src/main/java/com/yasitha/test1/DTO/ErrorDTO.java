@@ -2,13 +2,16 @@ package com.yasitha.test1.DTO;
 
 import lombok.Getter;
 
+import java.util.Set;
+
 @Getter
 public class ErrorDTO {
-    private final String message;
+    private final Set<String> messages;
 
+    public  ErrorDTO(Set<String> message) {
+        this.messages = message;
 
-    public ErrorDTO( String message) {
-        this.message = message;
     }
+
 
 }
