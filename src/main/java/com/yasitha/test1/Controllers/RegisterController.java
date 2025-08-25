@@ -1,7 +1,9 @@
 package com.yasitha.test1.Controllers;
 
-import com.yasitha.test1.DTO.PersonRegReq;
+import com.yasitha.test1.DTO.PersonRegisterRequest;
+import com.yasitha.test1.DTO.PersonRegisterResponse;
 import com.yasitha.test1.Service.PersonRegistrationService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.http.ResponseEntity;
@@ -32,11 +34,10 @@ public class RegisterController {
     }
 //controllers 
     @RequestMapping( value = "/reg", method = RequestMethod.POST)
-    public ResponseEntity<Map<String,String>> registerReq(@RequestBody PersonRegReq regReq) {
-        String message= personRegistration.registerUser(regReq);
-        Map<String,String> map = new HashMap<>();
-        map.put("message",message);
-        return ResponseEntity.ok(map);
+    public ResponseEntity<PersonRegisterResponse> registerReq(@Valid @RequestBody PersonRegisterRequest regReq) {
+
+        return personRegistration.registerUser(regReq);
+
 
         // Return a 200 OK response with
         // the message (server successfully processed the request)

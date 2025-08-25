@@ -1,23 +1,15 @@
 package com.yasitha.test1.Utility;
 
-import com.yasitha.test1.Model.Person;
-import com.yasitha.test1.Model.Role;
-import com.yasitha.test1.Service.CustomUserDetailsService;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 import lombok.Getter;
-import org.apache.catalina.authenticator.jaspic.SimpleAuthConfigProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.security.Key;
 import java.sql.Date;
 import java.util.*;
 
@@ -31,11 +23,10 @@ public class JWTUtility {
     //expiration time
     // 1 hour in milliseconds
     @Getter
-    private Date expirationTime;
+    private final Date expirationTime;
     //final private Date expirationTime = new Date(System.currentTimeMillis()+ 3600000);
     @Getter
     private final SecretKey secretKey;
-
 
     public JWTUtility(@Value("${security.jwt.secret-key}") String secretKeyString,@Value("${security.jwt.expiration-time}") String expirationTimeString) {
         // Decode the Base64-encoded secret key string
@@ -45,13 +36,19 @@ public class JWTUtility {
         this.expirationTime = new Date(expirationMillis);
     }
 
-
     //Generate JWT token
     public String generateToken(String username, Collection<? extends GrantedAuthority> authorities) {
+        Set<String> authoritySet = new HashSet<>();
+        authorities.forEach(auth -> authoritySet.add(auth.getAuthority()));
 
+        // Convert the Set to a List for storage in the JWT claim(no duplications)
+                /* JWT payloads are JSON objects, and the JSON specification doesn't have a native "set" data type.
+                It only supports arrays (which are equivalent to Java's List).
+                So, if you were to store a Java Set directly, it would be serialized as a JSON array anyway*/
+        List<String> roles = new ArrayList<>(authoritySet);
         return io.jsonwebtoken.Jwts.builder()
                 .setSubject(username)
-                .claim("auth",authorities)
+                .claim("auth",roles)
                 .setExpiration(new java.util.Date(System.currentTimeMillis() + expirationTime.getTime()))
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .signWith(getSecretKey())
@@ -59,7 +56,10 @@ public class JWTUtility {
     }
 
     // Extract username from JWT token
-    public String extractDetails(String token) {
+    public String extractUserDetails(String token) {
+        if(!validateToken(token)) {
+            throw new JwtException("Invalid token");
+        }
         return Jwts.parserBuilder()
                 .setSigningKey(secretKey)
                 .build()
@@ -67,51 +67,62 @@ public class JWTUtility {
                 .getBody()
                 .getSubject();
     }
-    // Extract roles from JWT token
-//    public String extractRoles(String token) {
-//        Map<String, Object> claims = Jwts.parserBuilder()
-//                .setSigningKey(getSecretKey())
-//                .build()
-//                .parseClaimsJws(token)
-//                .getBody();
-//
-//        Set<Role> roles = new HashSet<>();
-//        if (claims.containsKey("roles")) {
-//            Set<String> roleNames = (Set<String>) claims.get("roles");
-//            for (String roleName : roleNames) {
-//                roles.add(new Role(roleName));
-//            }
-//        }
-//        return roles;
-//    }
 
+    //Extract roles from JWT token
+    public Collection<? extends GrantedAuthority>  extractAuthorities(String token) {
+        Collection<? extends GrantedAuthority> userAuth=new HashSet<>();
+        try {
+            Map<String, Object> claims = Jwts.parserBuilder()
+                    .setSigningKey(getSecretKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
 
+            if(!claims.containsKey("auth")) {
+                throw new JwtException("JWT token does not contain 'auth' claim");
+            }
+            Set<String> roles = (Set<String>) claims.get("auth");
+            userAuth= roles.stream()
+                    .map(role -> new SimpleGrantedAuthority(role))
+                    .toList();
+        } catch (ExpiredJwtException e) {
+            System.err.println("ExpiredJwtException");
+        } catch (UnsupportedJwtException e) {
+            System.err.println("UnsupportedJwtException");
+        } catch (MalformedJwtException e) {
+            System.err.println("MalformedJwtException");
+
+        } catch (SignatureException e) {
+            System.err.println("SignatureException");
+        } catch (IllegalArgumentException e) {
+            System.err.println("IllegalArgumentException");
+        } catch (JwtException e) {
+            System.err.println("JwtException");
+
+        }
+        return userAuth;
+    }
 
     // Validate JWT token
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()
-                    .setSigningKey(getSecretKey())
-                    .build()
-                    .parseClaimsJws(token);
-            return !isTokenExpired(token);
+                    .setSigningKey(getSecretKey())  // Use the secret key to validate the signature,throws SignatureException if the signature is invalid
+                    .build()    //build the jwt parser object
+                    .parseClaimsJws(token);  //Signature validation, header and payload parsing(decoding base64), and expiration check are all done here.
+            // o.w it would pass as a jws token.
+            return true; // Token is valid
+        } catch (ExpiredJwtException e) {
+            // Log the expiration error for debugging
+            System.err.println("JWT Token is expired: " + e.getMessage());
+            return false;
         } catch (JwtException | IllegalArgumentException e) {
-            return false; // Token is invalid or expired
+            // Log other validation errors (e.g., malformed, bad signature)
+            System.err.println("Invalid JWT Token: " + e.getMessage());
+            return false;
         }
     }
 
-
-
-    // Check if the token is expired
-    private boolean isTokenExpired(String token) {
-        java.util.Date expiration = Jwts.parserBuilder()
-                .setSigningKey(getSecretKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getExpiration();
-        return expiration.before(new java.util.Date());
-    }
 }
 
 

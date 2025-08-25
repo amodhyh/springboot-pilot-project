@@ -1,14 +1,15 @@
 package com.yasitha.test1.Service;
 
-import com.yasitha.test1.DTO.PersonRegReq;
+import com.yasitha.test1.DTO.PersonRegisterRequest;
+import com.yasitha.test1.DTO.PersonRegisterResponse;
 import com.yasitha.test1.ExceptionHandling.EmailAlreadyExistsException;
 import com.yasitha.test1.ExceptionHandling.UserAgeException;
 import com.yasitha.test1.Model.Person;
 import com.yasitha.test1.Model.Role;
-import com.yasitha.test1.Repository.PermissionRepo;
 import com.yasitha.test1.Repository.PersonRepository;
 import com.yasitha.test1.Repository.RoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,28 +22,32 @@ import java.util.Set;
 @Service
 public class PersonRegistrationService {
 
-    private  final CustomUserDetailsService customUserDetailsService;
     private final PersonRepository personRepository;
     private final DelegatingPasswordEncoder passwordEncoder;
-    private final PermissionRepo permissionRepo;
     private final RoleRepository roleRepository;
 
     @Autowired
-    public PersonRegistrationService(CustomUserDetailsService customUserDetailsService, RoleRepository roleRepository, PersonRepository personRepository, DelegatingPasswordEncoder passwordEncoder, PermissionRepo permissionRepo) {
-        this.customUserDetailsService = customUserDetailsService;
+    public PersonRegistrationService( RoleRepository roleRepository, PersonRepository personRepository, DelegatingPasswordEncoder passwordEncoder) {
         this.personRepository = personRepository;
         this.passwordEncoder = passwordEncoder;
-        this.permissionRepo = permissionRepo;
         this.roleRepository = roleRepository;
+    }
+    private boolean isAnyFieldNull(PersonRegisterRequest request) {
+        return request.getEmail() == null ||
+                request.getPassword() == null ||
+                request.getDob() == null ||
+                request.getUsername() == null ||
+                request.getFirstName() == null ||
+                request.getLastName() == null;
     }
 
     @Transactional
-    public String registerUser(PersonRegReq personRegReq)  {
+    public ResponseEntity<PersonRegisterResponse> registerUser(PersonRegisterRequest personRegisterRequest)  {
 
-        if(personRepository.findByEmail(personRegReq.getEmail())!= null) {
-            throw new EmailAlreadyExistsException(personRegReq.getEmail()+" Email already exists!");
+         if(personRepository.findByEmail(personRegisterRequest.getEmail())!= null) {
+            throw new EmailAlreadyExistsException(personRegisterRequest.getEmail()+" Email already exists!");
         }
-        else if (Period.between(personRegReq.getDob(), LocalDate.now()).getYears()<16) {
+        else if (Period.between(personRegisterRequest.getDob(), LocalDate.now()).getYears()<16) {
             throw new UserAgeException("User must be at least 16 years old to register.");
 
         }
@@ -50,20 +55,20 @@ public class PersonRegistrationService {
         Role defRole= roleRepository.findByName("USER");
         Set<Role> defRoleSet = new HashSet<>();
         defRoleSet.add(defRole);
-        String encryptedPassword = passwordEncoder.encode(personRegReq.getPassword());
+        String encryptedPassword = passwordEncoder.encode(personRegisterRequest.getPassword());
         Person tem=Person.builder()
-                .firstName(personRegReq.getFirstName())
-                .lastName(personRegReq.getLastName())
-                .email(personRegReq.getEmail())
-                .username(personRegReq.getUsername())
+                .firstName(personRegisterRequest.getFirstName())
+                .lastName(personRegisterRequest.getLastName())
+                .email(personRegisterRequest.getEmail())
+                .username(personRegisterRequest.getUsername())
                 .password(encryptedPassword)
-                .dob(personRegReq.getDob())
+                .dob(personRegisterRequest.getDob())
                 .createdAt(LocalDate.now())
                 .roles(defRoleSet)
                 .build();
 
         personRepository.saveAndFlush(tem);
-        return "User registered successfully with username: " + personRegReq.getUsername();
+        return ResponseEntity.status(200).body(new PersonRegisterResponse(personRegisterRequest.getUsername()+" User registered successfully"));
 
 
     }
