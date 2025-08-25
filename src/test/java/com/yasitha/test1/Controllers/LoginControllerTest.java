@@ -1,9 +1,9 @@
 package com.yasitha.test1.Controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yasitha.test1.DTO.ErrorDTO;
 import com.yasitha.test1.DTO.PersonLoginResponse;
 import com.yasitha.test1.DTO.PersonLogingRequest;
+import com.yasitha.test1.ExceptionHandling.ExceptionHandler;
 import com.yasitha.test1.Security.JwtAuthenticationFilter;
 import com.yasitha.test1.Service.CustomUserDetailsService;
 import com.yasitha.test1.Service.PersonAuthenticationService;
@@ -14,13 +14,13 @@ import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfi
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -32,6 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(controllers = LoginController.class,
         excludeAutoConfiguration = {JwtAuthenticationFilter.class, SecurityAutoConfiguration.class}
 )
+@Import(ExceptionHandler.class)
 public class LoginControllerTest {
     //What @Mock does?
     // Create a fake Standalone Object - mock instance of PersonAuthenticationService
@@ -82,6 +83,17 @@ public class LoginControllerTest {
 
     @Autowired
     private PersonAuthenticationService personAuthenticationService;
+    // Create a mock MethodParameter (required by the exception constructor)
+   // MethodParameter mockMethodParameter = Mockito.mock(MethodParameter.class);
+
+    // Create a mock BindingResult
+    //BindingResult mockBindingResult = Mockito.mock(BindingResult.class);
+
+    // Create the specific FieldError you want to simulate
+    //FieldError passwordError = new FieldError(
+
+    // Instruct the mock to return true when hasErrors() is called
+
 
     @Test
     public void testAuthenticate_ValidCredentials_ReturnsTokens() throws Exception {
@@ -122,16 +134,12 @@ public class LoginControllerTest {
                 .andExpect(jsonPath("$.message").value("Invalid email or password"));
     }
 
+
     @Test
     public void testAuthenticate_MissingEmail_ReturnsBadRequest() throws Exception {
-        // Arrange
-        PersonLogingRequest loginRequest = new PersonLogingRequest(null, "password123");
-        //MultiErrorDTO multiErrorDTO = new MultiErrorDTO( Set.of("Email is required",""));
-        PersonLoginResponse loginResponse = new PersonLoginResponse(new ErrorDTO(Set.of("Email is required","")));
 
-        when(personAuthenticationService.authenticateUser(any(PersonLogingRequest.class)))
-                .thenReturn(ResponseEntity.status(HttpStatus.BAD_REQUEST).body((loginResponse)));
-        // Act & Assert
+     PersonLogingRequest loginRequest = new PersonLogingRequest(null, "123");
+
         mockMvc.perform(post("/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(loginRequest)))
@@ -144,15 +152,12 @@ public class LoginControllerTest {
     public void testAuthenticate_MissingPassword_ReturnsBadRequest() throws Exception {
         // Arrange
         PersonLogingRequest loginRequest = new PersonLogingRequest("test@email.com", null);
-        PersonLoginResponse loginResponse = new PersonLoginResponse("Password is required");
 
-        when(personAuthenticationService.authenticateUser(any(PersonLogingRequest.class)))
-                .thenReturn(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(loginResponse));
-        // Act & Assert
         mockMvc.perform(post("/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(new ObjectMapper().writeValueAsString(loginRequest)))
                 .andExpect(status().isBadRequest())
+
                 .andExpect(jsonPath("$.messages[0]").value("Password is required"));
 
     }
@@ -161,16 +166,13 @@ public class LoginControllerTest {
     public void testAuthenticate_InvalidEmailFormat_ReturnsBadRequest() throws Exception {
         // Arrange
         PersonLogingRequest loginRequest = new PersonLogingRequest("testemail.com", "123");
-        PersonLoginResponse loginResponse = new PersonLoginResponse("Invalid Email Format");
 
-        when(personAuthenticationService.authenticateUser(any(PersonLogingRequest.class)))
-                .thenReturn(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(loginResponse));
-        // Act & Assert
+
         mockMvc.perform(post("/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(loginRequest)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Password is required"));
+                .andExpect(jsonPath("$.messages[0]").value("Invalid Email Format"));
 
     }
     @Test
@@ -179,15 +181,13 @@ public class LoginControllerTest {
         PersonLogingRequest loginRequest = new PersonLogingRequest("", "");
         PersonLoginResponse loginResponse = new PersonLoginResponse("Invalid Email Format");
 
-        when(personAuthenticationService.authenticateUser(any(PersonLogingRequest.class)))
-                .thenReturn(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(loginResponse));
         // Act & Assert
         mockMvc.perform(post("/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(loginRequest)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Email is required,Password is required"));
-
+                .andExpect(jsonPath("$.messages[0]").value("Email is required"))
+                .andExpect(jsonPath("$.messages[1]").value("Password is required"));
     }
 
 
