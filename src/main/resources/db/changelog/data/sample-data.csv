@@ -1,0 +1,23 @@
+sample_id,name,description,email
+201,CSV Item 1,Loaded from a CSV file,csv1@example.com
+202,CSV Item 2,Also from a CSV file,csv2@example.com
+203,CSV Item 3,Third sample row,csv3@example.com
+204,CSV Item 4,Fourth sample row,csv4@example.com
+205,CSV Item 5,Fifth sample row,csv5@example.com
+206,CSV Item 6,Sixth sample row,csv6@example.com
+207,CSV Item 7,Seventh sample row,csv7@example.com
+208,CSV Item 8,Eighth sample row,csv8@example.com
+209,CSV Item 9,Ninth sample row,csv9@example.com
+210,CSV Item 10,Tenth sample row,csv10@example.com
+211,CSV Item 11,Eleventh sample row,csv11@example.com
+212,CSV Item 12,Twelfth sample row,csv12@example.com
+213,CSV Item 13,Thirteenth sample row,csv13@example.com
+214,CSV Item 14,Fourteenth sample row,csv14@example.com
+215,CSV Item 15,Fifteenth sample row,csv15@example.com
+216,CSV Item 16,Sixteenth sample row,csv16@example.com
+217,CSV Item 17,Seventeenth sample row,csv17@example.com
+218,CSV Item 18,Eighteenth sample row,csv18@example.com
+219,CSV Item 19,Nineteenth sample row,csv19@example.com
+220,CSV Item 20,Twentieth sample row,csv20@example.com
+221,CSV Item 21,Twenty-first sample row,csv21@example.com
+222,CSV Item 22,Twenty-second sample row,csv22@example.com

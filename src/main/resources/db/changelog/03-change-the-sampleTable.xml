@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="3" author="amodhyh">
+    <update tableName="sample_table">
+        <column name="description" value="This is a sample description"/>
+        <where>description IS NULL</where>
+    </update>
+    </changeSet>
+    <changeSet id="4" author="yasitha">
+        <dropColumn tableName="sample_table" columnName="created_at"/>
+    </changeSet>
+    <changeSet id="5" author="chan">
+        <addColumn tableName="sample_table">
+            <column name="updated_at" type="datetime">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="sample_table">
+            <column name="email" type="int">
+                <constraints unique="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="67" author="steve">
+        <modifyDataType tableName="sample_table" columnName="email" newDataType="varchar(150)"/>
+    </changeSet>
+</databaseChangeLog>

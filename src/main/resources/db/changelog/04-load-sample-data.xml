@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="8" author="amodhyh45">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM sample_table WHERE sample_id = 201</sqlCheck>
+        </preConditions>
+       <loadData file="db/changelog/data/sample-data.csv" tableName="sample_table" >
+        <column name="sample_id" type="NUMERIC"/>
+        <column name="name" type="STRING"/>
+        <column name="description" type="STRING"/>
+        <column name="email" type="STRING"/>
+       </loadData>
+
+    </changeSet>
+</databaseChangeLog>
