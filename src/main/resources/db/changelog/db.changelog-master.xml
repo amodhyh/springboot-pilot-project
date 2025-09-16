@@ -7,5 +7,6 @@
     <include file="db/changelog/01-create-person-table.xml"/>
     <include file="db/changelog/02-create-sampleTable.xml"/>
     <include file="db/changelog/03-change-the-sampleTable.xml"/>
+    <include file="db/changelog/04-load-sample-data.xml"/>
 
 </databaseChangeLog>
