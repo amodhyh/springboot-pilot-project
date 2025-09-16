@@ -11,10 +11,9 @@
             </not>
         </preConditions>
         <createTable ifNotExists="true" tableName="sample_table">
-            <column name="id" type="int">
-                <constraints unique="true" nullable="false"
-                             primaryKey="true" primaryKeyName="pk_sample_table_id"/>
-
+            <column name="sample_id" type="int">
+                <constraints nullable="false"
+                             primaryKey="true" primaryKeyName="pk_of_sample_tb"/>
             </column>
             <column name="name" type="varchar(100)">
                 <constraints nullable="false"/>

@@ -5,4 +5,7 @@
                    https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
     <include file="db/changelog/01-create-person-table.xml"/>
+    <include file="db/changelog/02-create-sampleTable.xml"/>
+    <include file="db/changelog/03-change-the-sampleTable.xml"/>
+
 </databaseChangeLog>
